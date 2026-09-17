@@ -468,6 +468,28 @@ jobs:
           done
         fi
 
+    - name: Collect KernelSU LKM Artifact
+      if: always()
+      run: |
+        KO="$RUNNER_TEMP/kernelsu.ko"
+        FOUND=$(find "$KERNEL_ROOT" -name 'kernelsu.ko' -type f 2>/dev/null | head -1)
+        if [ -n "$FOUND" ]; then
+          cp "$FOUND" "$KO"
+          echo "KERNELSU_KO=$KO" >> "$GITHUB_ENV"
+          echo "Found kernelsu.ko at $FOUND ($(stat -c%s "$FOUND") bytes)"
+        else
+          echo "WARNING: kernelsu.ko not found in build output"
+        fi
+
+    - name: Upload KernelSU LKM
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ env.FILE_NAME }}-kernelsu-ko
+        path: ${{ runner.temp }}/kernelsu.ko
+        if-no-files-found: warn
+        compression-level: 9
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
